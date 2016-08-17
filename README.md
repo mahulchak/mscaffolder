@@ -9,7 +9,7 @@ mScaffolder scaffolds a genome using an existing high quality genome as the refe
 
 <b>Workflow:</b>
 
-1. Mask the repeats in your genome (required) and the reference genome (optional) such that the sequence lengths do not change after masking. Lets say that after masking the genomes, you have a 'reference.masked.fasta" and "your_genome.masked.fasta". The unmasked files are "reference.fasta" and "your_genome.fasta".
+1. Mask the repeats in your genome and the reference genome such that the sequence lengths do not change after masking. Lets say that after masking the genomes, you have a 'reference.masked.fasta" and "your_genome.masked.fasta". The unmasked files are "reference.fasta" and "your_genome.fasta".
 
 2. Run nucmer and delta-filter for 1-to-1 alignment between the reference genome and your genome.
 
