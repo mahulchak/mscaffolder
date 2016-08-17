@@ -70,9 +70,26 @@ int main(int argc, char * argv[])
 		fillSeq(genome,fasta);	
 		joinList(master,genome);
 		chromMap.open("ctgmap.txt");
+		//for(unsigned int i =0; i< master.q_name.size();i++)
+		int chromCount = 0;
+		for(map<string,string>::iterator it = genome.seq.begin();it!= genome.seq.end(); it++)
+		{
+			//if(find(master.qToRemove.begin(),master.qToRemove.end(),master.q_name[i]) == master.qToRemove.end())
+			if(find(master.qToRemove.begin(),master.qToRemove.end(),it->first) == master.qToRemove.end())
+			{
+				if(!genome.seq[it->first].empty()) //if the sequence is not empty already
+				{
+					cout<<">U_"<<chromCount++<<endl;
+					cout<<it->second<<endl;
+					//genome.seq[it->first] = "";
+					chromMap<<"Unscaffolded"<<"\t"<<chromCount<<"\t"<<it->first<<endl;
+				}
+			}
+		}
+		//chromMap.open("ctgmap.txt");
 		for(map<string,string>::iterator it=master.storeHomolog.begin();it!= master.storeHomolog.end();it++)
 		{
-			chromMap<< it->first << "\t"<< it->second <<endl;
+			chromMap<<"Map"<<"\t"<< it->first << "\t"<< it->second <<endl;
 		}
 		chromMap.close();
 	}

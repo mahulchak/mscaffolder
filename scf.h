@@ -32,6 +32,8 @@ map<string,vector<int> > refStart;
 map<string,vector<string> > qStoreStart;
 map<string,bool> innie;
 map<string,char> strandOri;
+vector<string> qToRemove; // scaffolded contigs
+map<string,int> new_refSt;
 };
 
 class fastaSeq{
@@ -52,5 +54,5 @@ void joinList(asmMerge & merge, fastaSeq & genome);
 unsigned int findElem(vector<int> & v, int & n);
 void oriQ(asmMerge & merge);
 string revCom(string & str);
-
+int findCoverage(asmMerge & merge, string & tempname,string & tempname2,int & qStart,int & qEnd);
 #endif
