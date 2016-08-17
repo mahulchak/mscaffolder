@@ -266,13 +266,31 @@ unsigned int k = str.size();
                 {
                 revcom.push_back('G');
                 }
-		if(str[i] == 'N')
-		{
-		revcom.push_back('N');
-		}
+                if(str[i] == 'N')
+                {
+                revcom.push_back('N');
+                }
+                if(str[i] == 'a')
+                {
+                revcom.push_back('T');
+                }
+                if(str[i] == 't')
+                {
+                revcom.push_back('A');
+                }
+                if(str[i] == 'g')
+                {
+                revcom.push_back('C');
+                }
+                if(str[i] == 'c')
+                {
+                revcom.push_back('G');
+                }
+
         }
 return revcom;
 }
+
 ////////////////////////////////////////////////////////////////////////////////////
 int findCoverage(asmMerge & merge, string & tempname,string & tempname2,int & qStart,int & qEnd)
 {
