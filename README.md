@@ -25,7 +25,7 @@ mScaffolder scaffolds a genome using an existing high quality genome as the refe
 4. Run mscaffolder (use the <b>unmasked</b> genome file as fasta file input).
 
   ```
-   mscaffolder -D mygenome.delta -f your_genome.fasta > my_scaffold.fasta
+   mscaffolder -d1 mygenome.1delta -md mygenome.mdelta -f your_genome.fasta > my_scaffold.fasta
   ```
 
 <b>What else do you need to know?</b>
