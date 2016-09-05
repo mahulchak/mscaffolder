@@ -20,9 +20,11 @@ mScaffolder scaffolds a genome using an existing high quality genome as the refe
 
   ```
    nucmer -mum -prefix mygenome reference.repmasked.fasta your_genome.masked.fasta
-   delta-filter -1 mygenome.delta > mygenome.1.delta
+   delta-filter -1 mygenome.delta > mygenome.1delta
+   delta-filter -m mygenome.delta > mygenome.mdelta
+
   ```
-4. Run mscaffolder (use the <b>unmasked</b> genome file as fasta file input).
+4. Run mscaffolder (use the <b>unmasked</b> genome file and NOT the masked genome file as fasta file input).
 
   ```
    mscaffolder -d1 mygenome.1delta -md mygenome.mdelta -f your_genome.fasta > my_scaffold.fasta
