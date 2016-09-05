@@ -48,11 +48,12 @@ void fillSeq(fastaSeq & fasta, ifstream& fin);
 int ovlCalculator(vector<int>& q_st, vector<int>& q_end);
 void ovlStoreCalculator(asmMerge & merge);
 void findChromPartner(asmMerge & merge);
-void storeStart(asmMerge & merge);
+void storeStart(asmMerge & merge, asmMerge & merge1);
 void innieChecker(asmMerge & merge);
+void innieChecker(asmMerge & merge, asmMerge & merge1);
 void joinList(asmMerge & merge, fastaSeq & genome);
 unsigned int findElem(vector<int> & v, int & n);
 void oriQ(asmMerge & merge);
 string revCom(string & str);
-int findCoverage(asmMerge & merge, string & tempname,string & tempname2,int & qStart,int & qEnd);
+int findCoverage(asmMerge & merge, string & tempname,string & tempname2);
 #endif
