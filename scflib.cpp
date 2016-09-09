@@ -24,18 +24,76 @@ return elem;
 
 
 /////////////////////////////////////////////////////////////////////////////
-int ovlCalculator(vector<int>& q_st, vector<int>& q_end)
+int ovlCalculator(asmMerge & merge,string & tempname,vector<int>& ref_st,vector<int>& ref_end,vector<int>& q_st, vector<int>& q_end)
 {
 int ovl = 0;
+long int storedQend = 0,storedRefEnd = 0;
+vector<int> v;
+map<int,int> ovl2refSt;
 
-        for(unsigned int j =0;j<q_st.size();j++)
-        {
-        ovl = ovl + abs(q_st[j] - q_end[j]);
-        }
+	if(q_st.size() >1)
+	{
+	        for(unsigned int j =0;j<q_st.size();j++)
+	        {
+			if(q_st[j]<q_end[j]) //if this MUM is forward oriented
+			{
+				storedQend = 0;
+				storedRefEnd = 0;
+				for(unsigned k = j;k<q_st.size();k++)
+				{
+					if((q_st[k] > storedQend) && (abs(q_st[k]-storedQend)<merge.q_len[tempname]) && (ref_st[k] > storedRefEnd))
+					{
+						ovl = ovl + abs(q_st[k] - q_end[k]);
+						storedQend = q_end[k];
+						storedRefEnd = ref_end[k];
+					}
+				}
+			}
+			if(q_st[j]>q_end[j]) //if this MUM is reverse oriented
+			{
+				storedQend = 100000000000;
+				storedRefEnd = 0;
+				for(unsigned k = j;k<q_st.size();k++)
+				{
+					if(j == k)
+					{
+						if((q_st[k] < storedQend) && (ref_st[k] > storedRefEnd))
+					 	{
+							ovl = ovl + abs(q_st[k] - q_end[k]);
+							storedQend = q_end[k];
+							storedRefEnd = ref_end[k];
+						}
+					}
+					if(j>k)
+					{
+						if((q_st[k] < storedQend) && (abs(q_st[k]-storedQend)<merge.q_len[tempname]) && (ref_st[k] > storedRefEnd))
+						{
+							ovl = ovl + abs(q_st[k] - q_end[k]);
+                                                        storedQend = q_end[k];
+							storedRefEnd = ref_end[k];
+						}
+					}
+				}
+			}
+			ovl2refSt[ovl] = ref_st[j];
+			v.push_back(ovl);
+			ovl = 0;
 
+		}
+	}
+	if(q_st.size() == 1)
+	{
+		ovl = abs(q_st[0] - q_end[0]);
+		ovl2refSt[ovl] = ref_st[0];
+		v.push_back(abs(q_st[0] - q_end[0]));
+	}
+		sort(v.begin(),v.end());
+	        ovl = v[v.size()-1];
+	merge.new_refSt[tempname] = ovl2refSt[ovl];
 
 return ovl;
 }
+
 /////////////////////////////////////////////////////////////////////////////////////
 void ovlStoreCalculator(asmMerge & merge)
 {
@@ -43,7 +101,8 @@ void ovlStoreCalculator(asmMerge & merge)
 		for(unsigned int i =0;i<merge.r_name.size();i++)
 		{
 			tempname = merge.r_name[i]+merge.q_name[i];
-			merge.ovlStore[tempname] = ovlCalculator(merge.q_st[tempname],merge.q_end[tempname]);
+			merge.ovlStore[tempname] = ovlCalculator(merge,tempname,merge.ref_st[tempname],merge.ref_end[tempname],merge.q_st[tempname],merge.q_end[tempname]);
+			merge.storeAlnCov[merge.q_name[i]] = merge.storeAlnCov[merge.q_name[i]] + merge.ovlStore[tempname];
 		}
 }
 ////////////////////////////////////////////////////////////////////////////////////
@@ -53,35 +112,47 @@ void findChromPartner(asmMerge & merge)
 	for(unsigned int i =0;i<merge.q_name.size();i++)
 	{
 		tempname = merge.r_name[i] + merge.q_name[i];
+
+		if(double(merge.ovlStore[tempname])/double(merge.storeAlnCov[merge.q_name[i]])<0.4)
+		{
+			merge.innie[tempname] = true;
+		}
 		if(merge.storeHomAln[merge.q_name[i]] < merge.ovlStore[tempname]) //if found a longer alignment
 		{
 			merge.storeHomolog[merge.q_name[i]] = merge.r_name[i];
 			merge.storeHomAln[merge.q_name[i]] = merge.ovlStore[tempname];
+
 		}
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////
-void storeStart(asmMerge & merge, asmMerge & merge1)
+void storeStart(asmMerge & merge)
 {
 	string tempname;
 	
 	for(unsigned int i =0;i<merge.r_name.size();i++)
 	{
 		tempname = merge.r_name[i] + merge.q_name[i];
-		if(merge1.innie[tempname] != true) // using the filtering criteria obtained from the mdelta file
+		if(merge.innie[tempname] != true) // using the filtering criteria obtained from the mdelta file
 		{
 			if(merge.storeHomolog[merge.q_name[i]] == merge.r_name[i])
 			{
 
 				if(merge.new_refSt[tempname] != 0)
 				{
-					merge.refStart[merge.r_name[i]].push_back(merge.new_refSt[tempname]);
-					 merge.qStoreStart[merge.r_name[i]].push_back(merge.q_name[i]);
+					if(chkDup(merge,merge.r_name[i],merge.new_refSt[tempname],merge.q_name[i]) == false)
+					{
+						merge.refStart[merge.r_name[i]].push_back(merge.new_refSt[tempname]);
+						merge.qStoreStart[merge.r_name[i]].push_back(merge.q_name[i]);
+					}
 				}
 				if(merge.new_refSt[tempname] == 0)
 				{
-					merge.refStart[merge.r_name[i]].push_back(merge.ref_st[tempname][0]);//take the midpoint instead of the first
-					merge.qStoreStart[merge.r_name[i]].push_back(merge.q_name[i]);
+					if (chkDup(merge,merge.r_name[i],merge.ref_st[tempname][0],merge.q_name[i]) == false)
+					{
+						merge.refStart[merge.r_name[i]].push_back(merge.ref_st[tempname][0]);
+						merge.qStoreStart[merge.r_name[i]].push_back(merge.q_name[i]);
+					}
 				}
 			}
 		}
@@ -89,7 +160,7 @@ void storeStart(asmMerge & merge, asmMerge & merge1)
 	
 }	
 ////////////////////////////////////////////////////////////////////////////////
-void innieChecker(asmMerge & merge, asmMerge & merge1)
+void innieChecker(asmMerge & merge)
 {
 	string tempname,tempname2;	
 	int refEnd1 = 0,refEnd2 =0;
@@ -103,13 +174,13 @@ void innieChecker(asmMerge & merge, asmMerge & merge1)
 			if((merge.ovlStore[tempname] > merge.ovlStore[tempname2]) && (merge.r_name[i] == merge.r_name[j])) // if the second query length is shorter
 			{
 
-				if((merge1.storeHomolog[merge.q_name[i]] == merge1.storeHomolog[merge.q_name[j]])&&(merge1.ref_st[tempname].size()!=0) && (merge1.ref_st[tempname2].size()!=0)) //both of their best reference hits are same
+				if((merge.storeHomolog[merge.q_name[i]] == merge.storeHomolog[merge.q_name[j]])&&(merge.ref_st[tempname].size()!=0) && (merge.ref_st[tempname2].size()!=0)) //both of their best reference hits are same
 				{	
 
-					refEnd1 = merge1.ref_end[tempname][merge1.ref_st[tempname].size()-1];
-					refEnd2 = merge1.ref_end[tempname2][merge1.ref_st[tempname2].size()-1];
+					refEnd1 = merge.ref_end[tempname][merge.ref_st[tempname].size()-1];
+					refEnd2 = merge.ref_end[tempname2][merge.ref_st[tempname2].size()-1];
 
-					if(((!(merge1.ref_st[tempname][0] > merge1.ref_st[tempname2][0])) && (refEnd2<refEnd1)) ||((merge1.ref_st[tempname][0] < merge1.ref_st[tempname2][0]) && (!(refEnd2>refEnd1))))	
+					if(((!(merge.ref_st[tempname][0] > merge.ref_st[tempname2][0])) && (refEnd2<refEnd1)) ||((merge.ref_st[tempname][0] < merge.ref_st[tempname2][0]) && (!(refEnd2>refEnd1))))	
 					{
 
 
@@ -118,7 +189,7 @@ void innieChecker(asmMerge & merge, asmMerge & merge1)
 			
 							{
 								merge.innie[tempname2] = true; //a better alignment for this part is tempname
-								//cout<<tempname2<<endl;
+							
 							}
 					}
 				}
@@ -127,37 +198,6 @@ void innieChecker(asmMerge & merge, asmMerge & merge1)
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////
-void innieChecker(asmMerge & merge)
-{
-        string tempname,tempname2;
-        int refEnd1 = 0,refEnd2 =0;
-        for(unsigned int i =0;i<merge.r_name.size();i++)
-        {
-                tempname = merge.r_name[i] + merge.q_name[i];
-
-                for(unsigned int j =0;j<merge.r_name.size();j++)
-                {
-                        tempname2 = merge.r_name[j]+merge.q_name[j];
-                        if((merge.ovlStore[tempname] > merge.ovlStore[tempname2]) && (merge.r_name[i] == merge.r_name[j])) // if the second query length is shorter
-                        {
-                                if(merge.storeHomolog[merge.q_name[i]] == merge.storeHomolog[merge.q_name[j]]) //both of their best reference hits are same
-                                {
-                                        refEnd1 = merge.ref_end[tempname][merge.ref_st[tempname].size()-1];
-                                        refEnd2 = merge.ref_end[tempname2][merge.ref_st[tempname2].size()-1];
-					 if(((!(merge.ref_st[tempname][0] > merge.ref_st[tempname2][0])) && (refEnd2<refEnd1)) ||((merge.ref_st[tempname][0] < merge.ref_st[tempname2][0]) && (!(refEnd2>refEnd1))))
-					{
-					 	if(findCoverage(merge,tempname,tempname2) >0)
-
-                                                        {
-                                                                merge.innie[tempname2] = true; //a better alignment for this part is tempname
-							}
-					}
-				}
-			}
-		}
-	}
-}
-///////////////////////////////////////////////////////////////////////////////
 void fillSeq(fastaSeq & fasta, ifstream& fin) 
 {
         string str,str1;
@@ -167,7 +207,7 @@ void fillSeq(fastaSeq & fasta, ifstream& fin)
                 if(str[0] == '>')
                 {       
                         fasta.seqName.push_back(str);
-//cout<<str<<endl;
+
                 }
                 getline(fin,str1);
                 fasta.seq[str.substr(1)] = str1; //fasta.seq[str.substr(1)] = str1 needed to remove leading >
@@ -188,13 +228,13 @@ void joinList(asmMerge & merge, fastaSeq & genome)
 	{
 		filler.push_back('N');
 	}
-//cout<<filler<<endl;
+
 	for (map<string,vector<int> >::iterator it = merge.refStart.begin();it != merge.refStart.end(); it++)
 	{
 		refName = it->first;
 		allStart = merge.refStart[refName];
 		sort(allStart.begin(),allStart.end());
-//		cout<<refName<<"\t"<<allStart.size()<<endl;
+
 		cout<<">"<<refName<<endl;
 		for(unsigned int i =0; i<allStart.size();i++)
 		{
@@ -202,7 +242,7 @@ void joinList(asmMerge & merge, fastaSeq & genome)
 			{
 				pos = findElem(merge.refStart[refName],allStart[i]);
 
-//cout<<merge.qStoreStart[refName][pos]<<endl;
+
 				tempname = refName + merge.qStoreStart[refName][pos]; //find the index corresponding to the query
 				if(merge.strandOri[tempname] == 'F')
 				{
@@ -218,8 +258,8 @@ void joinList(asmMerge & merge, fastaSeq & genome)
 			if(i == 0)
 			{
 				pos = findElem(merge.refStart[refName],allStart[i]);
-//cout<<pos<<endl;
-//cout<<merge.qStoreStart[refName][pos]<<endl;
+
+
 				tempname = refName + merge.qStoreStart[refName][pos];
 				if(merge.strandOri[tempname] == 'F')
                                 {
@@ -238,7 +278,7 @@ void joinList(asmMerge & merge, fastaSeq & genome)
                                 }
 				
 		}
-		//cout<<scaffold.size()<<endl;
+
 		cout<<scaffold<<endl;
 		scaffold.clear();//reset scaffold for the next chromosome
 	}	
@@ -250,7 +290,7 @@ unsigned int findElem(vector<int> & v, int & n)
 {
 unsigned int i =0;
 
-	while(v[i] != n)
+	while((v[i] != n) && (i<v.size()))
 	{
 		i++;
 	}
@@ -314,6 +354,27 @@ unsigned int k = str.size();
 		{
 		revcom.push_back('N');
 		}
+		if(str[i] == 'a')
+                {
+                revcom.push_back('T');
+                }
+                if(str[i] == 't')
+                {
+                revcom.push_back('A');
+                }
+                if(str[i] == 'g')
+                {
+                revcom.push_back('C');
+                }
+                if(str[i] == 'c')
+                {
+                revcom.push_back('G');
+                }
+                if(str[i] == 'n')
+                {
+                revcom.push_back('N');
+                }
+
         }
 return revcom;
 }
@@ -330,11 +391,10 @@ int findCoverage(asmMerge & merge, string & tempname,string & tempname2)
 		qEnd = merge.ref_end[tempname2][j];
 		for(unsigned int i = 0;i<merge.ref_st[tempname].size();i++)
 		{
-
 			if(!(merge.ref_end[tempname][i] < qStart) && !(merge.ref_st[tempname][i] > qEnd))
 			{
 
-				cov = cov + abs(max(merge.ref_st[tempname][i],qStart) - min(merge.ref_end[tempname][i],merge.ref_end[tempname2][0]));	
+				cov = cov + abs(max(merge.ref_st[tempname][i],qStart) - min(merge.ref_end[tempname][i],qEnd));	
 			}
 			if((!(merge.ref_st[tempname][i] > qStart)) && (i<int(0.5*merge.ref_st[tempname].size())))
 			{
@@ -345,7 +405,7 @@ int findCoverage(asmMerge & merge, string & tempname,string & tempname2)
 		}
 	}
 
-	if(cov == 0)
+	if((cov == 0) && (merge.new_refSt[tempname]<merge.ref_st[tempname][reIndex+1]))//if existing modified start pos is smaller
 	{
 		merge.new_refSt[tempname] = merge.ref_st[tempname][reIndex+1];
 
@@ -353,4 +413,28 @@ int findCoverage(asmMerge & merge, string & tempname,string & tempname2)
 	return cov;
 }
 ///////////////////////////////////////////////////////////////////////////////////
- 
+bool chkDup(asmMerge & merge,string & r_name,int & new_refSt,string & q_name)
+{
+	bool found = 0;
+	unsigned int index = 0;
+	string tempname,tempname1;
+	tempname = r_name + q_name;
+	int refQuery = merge.new_refSt[tempname];
+	vector<int> ref_st;
+	ref_st = merge.refStart[r_name];
+	if(ref_st.size() >0)
+	{
+		index = findElem(ref_st,refQuery);
+		if(index < merge.refStart[r_name].size()) //if the element is present
+		{
+			tempname1 = r_name + merge.qStoreStart[r_name][index];
+			found = true;
+			if(merge.ovlStore[tempname] > merge.ovlStore[tempname1])
+			{
+				merge.qStoreStart[r_name][index] = q_name;
+			}
+		}
+	}
+
+	return found;
+} 
