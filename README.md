@@ -20,14 +20,13 @@ mScaffolder scaffolds a genome using an existing high quality genome as the refe
 
   ```
    nucmer -mum -prefix mygenome reference.repmasked.fasta your_genome.masked.fasta
-   delta-filter -1 mygenome.delta > mygenome.1delta
    delta-filter -m mygenome.delta > mygenome.mdelta
 
   ```
 4. Run mscaffolder (use the <b>unmasked</b> genome file and NOT the masked genome file as fasta file input).
 
   ```
-   mscaffolder -d1 mygenome.1delta -md mygenome.mdelta -f your_genome.fasta > my_scaffold.fasta
+   mscaffolder -md mygenome.mdelta -f your_genome.fasta > my_scaffold.fasta
   ```
 
 <b>What else do you need to know?</b>
@@ -38,7 +37,6 @@ mScaffolder scaffolds a genome using an existing high quality genome as the refe
   
   c) The unscaffolded contigs are named with a 'U_' prefix. You will see that a file called "ctgmap.txt" is generated after scaffolder runs. That file has the information about the unscaffolded contigs and information about which contig maps to which reference chromosome.
   
-  d) I will soon be adding another utility for manually adding an unscaffolded contig into an existing scaffold (please email me if you need it).
   
 <b>Citation</b>
 Coming soon!
