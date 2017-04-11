@@ -8,7 +8,7 @@
 #include<fstream>
 #include<algorithm>
 #include<cstdlib>
-
+#include<iostream>
 
 using namespace std;
 
@@ -35,7 +35,7 @@ map<string,bool> innie;
 map<string,char> strandOri;
 vector<string> qToRemove; // scaffolded contigs
 map<string,int> new_refSt;
-map<string,int> storeAlnCov;
+vector<string> qList;
 };
 
 class fastaSeq{
@@ -47,15 +47,17 @@ map<string,string> seq;
 
 string xtractcol(string str,char c, int n);
 void fillSeq(fastaSeq & fasta, ifstream& fin);
-int ovlCalculator(asmMerge & merge,string & index, vector<int>& ref_st,vector<int> & ref_end, vector<int>& q_st, vector<int>& q_end);
+int ovlCalculator(vector<int>& q_st, vector<int>& q_end);
 void ovlStoreCalculator(asmMerge & merge);
 void findChromPartner(asmMerge & merge);
-void storeStart(asmMerge & merge);
+void storeStart(asmMerge & merge, asmMerge & merge1, char c);
 void innieChecker(asmMerge & merge);
-void joinList(asmMerge & merge, fastaSeq & genome);
+void innieChecker(asmMerge & merge, asmMerge & merge1);
+void joinList(asmMerge & merge, fastaSeq & genome,char c);
 unsigned int findElem(vector<int> & v, int & n);
+unsigned int findElem(vector<string> & v, string & n);
 void oriQ(asmMerge & merge);
 string revCom(string & str);
 int findCoverage(asmMerge & merge, string & tempname,string & tempname2);
-bool chkDup(asmMerge & merge,string & r_name, int & new_refSt,string & q_name);
+vector<string> findQlist(ifstream & ctgList);
 #endif
