@@ -69,7 +69,7 @@ i.e. the switch 'ul' needs to be turned on and a list needs to be provided. To o
   
   
 <b>Citation</b>
-Coming soon!
+http://biorxiv.org/content/early/2017/03/08/114967
 
 
 
