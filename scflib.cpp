@@ -237,10 +237,9 @@ void joinList(asmMerge & merge, fastaSeq & genome, char c)
 					{
 						revseq = revCom(genome.seq[merge.qStoreStart[refName][pos]]);
 					}
-					pos = allStart[i];
 					if(c == 'y')
 					{
-						revseq = revCom(genome.seq[merge.qList[pos]]);
+						revseq = revCom(genome.seq[merge.qList[allStart[i]]]);
 					}
 					scaffold.append(revseq);
 				}
