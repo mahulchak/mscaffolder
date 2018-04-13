@@ -124,7 +124,7 @@ void innieChecker(asmMerge & merge, asmMerge & merge1)
 					if(((!(merge1.ref_st[tempname][0] > merge1.ref_st[tempname2][0])) && (refEnd2<refEnd1)) ||((merge1.ref_st[tempname][0] < merge1.ref_st[tempname2][0]) && (!(refEnd2>refEnd1))))	
 					{
 
-						if(findCoverage(merge,tempname,tempname2) > int(0.8*merge.ovlStore[tempname2]))
+						if(findCoverage(merge,tempname,tempname2) > int(0.7*merge.ovlStore[tempname2]))
 			
 							{
 								merge.innie[tempname2] = true; //a better alignment for this part is tempname
@@ -156,7 +156,7 @@ void innieChecker(asmMerge & merge)
                                         refEnd2 = merge.ref_end[tempname2][merge.ref_st[tempname2].size()-1];
 					 if(((!(merge.ref_st[tempname][0] > merge.ref_st[tempname2][0])) && (refEnd2<refEnd1)) ||((merge.ref_st[tempname][0] < merge.ref_st[tempname2][0]) && (!(refEnd2>refEnd1))))
 					{
-					 	if(findCoverage(merge,tempname,tempname2) > int(0.9*merge.ovlStore[tempname2]))//if more than 90% is covered by another sequence
+					 	if(findCoverage(merge,tempname,tempname2) > int(0.7*merge.ovlStore[tempname2]))//if more than 90% is covered by another sequence
 
                                                         {
                                                                 merge.innie[tempname2] = true; //a better alignment for this part is tempname
@@ -209,9 +209,10 @@ void joinList(asmMerge & merge, fastaSeq & genome, char c)
 		{
 			if((i>0) && (allStart[i] != allStart[i-1])) //if the two contigs don't have the same start site on the reference
 			{
-				//pos = findElem(merge.refStart[refName],allStart[i]);
+				pos = findElem(merge.refStart[refName],allStart[i]);
 //cout<<pos<<endl;
 //cout<<merge.qStoreStart[refName][pos]<<endl;
+//cout<<c<<endl;
 				if(c == 'n')
 				{
 					tempname = refName + merge.qStoreStart[refName][pos]; //find the index corresponding to the query
@@ -237,6 +238,7 @@ void joinList(asmMerge & merge, fastaSeq & genome, char c)
 					{
 						revseq = revCom(genome.seq[merge.qStoreStart[refName][pos]]);
 					}
+					//pos = allStart[i];
 					if(c == 'y')
 					{
 						revseq = revCom(genome.seq[merge.qList[allStart[i]]]);
@@ -259,7 +261,7 @@ void joinList(asmMerge & merge, fastaSeq & genome, char c)
 			}
 			if(i == 0)
 			{
-				//pos = findElem(merge.refStart[refName],allStart[i]);
+				pos = findElem(merge.refStart[refName],allStart[i]);
 //cout<<pos<<endl;
 //cout<<merge.qStoreStart[refName][pos]<<endl;
 				if(c == 'n')
