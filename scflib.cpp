@@ -57,6 +57,7 @@ void findChromPartner(asmMerge & merge)
 		{
 			merge.storeHomolog[merge.q_name[i]] = merge.r_name[i];
 			merge.storeHomAln[merge.q_name[i]] = merge.ovlStore[tempname];
+//cout<<merge.r_name[i]<<"\t"<<merge.q_name[i]<<endl;
 		}
 	}
 }
@@ -78,12 +79,15 @@ void storeStart(asmMerge & merge, asmMerge & merge1, char c) //character c tells
 					if(c == 'y')
 					{
 						merge.refStart[merge.r_name[i]].push_back(findElem(merge.qList,merge.q_name[i]));//storing the index from the sorted query name list
+
 					}
 					if(c=='n')
 					{
 						merge.refStart[merge.r_name[i]].push_back(merge.new_refSt[tempname]);
+//cout<<merge.r_name[i]<<"\t"<<merge.q_name[i]<<endl;
 					}
 					merge.qStoreStart[merge.r_name[i]].push_back(merge.q_name[i]);
+//cout<<merge.r_name[i]<<"\t"<<merge.q_name[i]<<endl;
 //cout<<merge.q_name[i]<<"\t"<<findElem(merge.qList,merge.q_name[i])<<endl;
 				}
 				if(merge.new_refSt[tempname] == 0)
@@ -124,7 +128,7 @@ void innieChecker(asmMerge & merge, asmMerge & merge1)
 					if(((!(merge1.ref_st[tempname][0] > merge1.ref_st[tempname2][0])) && (refEnd2<refEnd1)) ||((merge1.ref_st[tempname][0] < merge1.ref_st[tempname2][0]) && (!(refEnd2>refEnd1))))	
 					{
 
-						if(findCoverage(merge,tempname,tempname2) > int(0.7*merge.ovlStore[tempname2]))
+						if(findCoverage(merge,tempname,tempname2) > int(0.8*merge.ovlStore[tempname2]))
 			
 							{
 								merge.innie[tempname2] = true; //a better alignment for this part is tempname
@@ -156,7 +160,7 @@ void innieChecker(asmMerge & merge)
                                         refEnd2 = merge.ref_end[tempname2][merge.ref_st[tempname2].size()-1];
 					 if(((!(merge.ref_st[tempname][0] > merge.ref_st[tempname2][0])) && (refEnd2<refEnd1)) ||((merge.ref_st[tempname][0] < merge.ref_st[tempname2][0]) && (!(refEnd2>refEnd1))))
 					{
-					 	if(findCoverage(merge,tempname,tempname2) > int(0.7*merge.ovlStore[tempname2]))//if more than 90% is covered by another sequence
+					 	if(findCoverage(merge,tempname,tempname2) > int(0.9*merge.ovlStore[tempname2]))//if more than 90% is covered by another sequence
 
                                                         {
                                                                 merge.innie[tempname2] = true; //a better alignment for this part is tempname
@@ -170,17 +174,20 @@ void innieChecker(asmMerge & merge)
 ///////////////////////////////////////////////////////////////////////////////
 void fillSeq(fastaSeq & fasta, ifstream& fin) 
 {
-        string str,str1;
+        string str,index;
         
         while(getline(fin,str))
         {
                 if(str[0] == '>')
                 {       
                         fasta.seqName.push_back(str);
+			index = str.substr(1);
 //cout<<str<<endl;
                 }
-                getline(fin,str1);
-                fasta.seq[str.substr(1)] = str1; //fasta.seq[str.substr(1)] = str1 needed to remove leading >
+		if(str[0] != '>')
+		{
+                	fasta.seq[index].append(str); //fasta.seq[str.substr(1)] = str1 needed to remove leading >
+		}
 	
         }
 }
@@ -212,7 +219,6 @@ void joinList(asmMerge & merge, fastaSeq & genome, char c)
 				pos = findElem(merge.refStart[refName],allStart[i]);
 //cout<<pos<<endl;
 //cout<<merge.qStoreStart[refName][pos]<<endl;
-//cout<<c<<endl;
 				if(c == 'n')
 				{
 					tempname = refName + merge.qStoreStart[refName][pos]; //find the index corresponding to the query
@@ -238,7 +244,6 @@ void joinList(asmMerge & merge, fastaSeq & genome, char c)
 					{
 						revseq = revCom(genome.seq[merge.qStoreStart[refName][pos]]);
 					}
-					//pos = allStart[i];
 					if(c == 'y')
 					{
 						revseq = revCom(genome.seq[merge.qList[allStart[i]]]);
